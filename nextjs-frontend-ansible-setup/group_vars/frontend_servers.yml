@@ -1,6 +1,8 @@
-app_user: frontend-nextjs-user
+server_username: frontend-nextjs-user
 repo_name: myabroadfriend
 deploy_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIYFLC3AfdbFSKe2ff/QEGH+ntMmjLhL+ERjYVWQf0Un samir-maharjan@gmail.com"
-nvm_dir: "/home/{{ app_user }}/.nvm"
+nvm_dir: "/home/{{ server_username }}/.nvm"
+node_version: "20.9.0"
+
 
 

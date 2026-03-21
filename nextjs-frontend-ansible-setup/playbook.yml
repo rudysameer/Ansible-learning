@@ -3,10 +3,6 @@
   hosts: frontend_servers
   become: yes
 
-  vars:
-    app_user: frontend-nextjs-user
-
   roles:
-    - deploy_user
-    - node-nvm
-    - pm2
+    - base
+    - frontend-nextjs-deploy

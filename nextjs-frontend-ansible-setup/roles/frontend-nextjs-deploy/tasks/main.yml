@@ -1,0 +1,61 @@
+# creates tells ansible if the file already exist skip the task. NVM only gets insatlled if its isnot alredy there
+- name: Install NVM
+  become_user: "{{ server_username }}"
+  shell: |
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+  args:
+    creates: "{{ nvm_dir }}/nvm.sh"
+
+
+# Install nodejs via nvm
+# sourcing nvm.sh path so nvm gets known and node can be installed
+- name: Install Node.js via nvm
+  become_user: "{{ server_username }}"
+  shell: |
+    export NVM_DIR="{{ nvm_dir }}"
+    [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+    nvm install {{ node_version }}
+    nvm alias default {{ node_version }}
+  args:
+    executable: /bin/bash
+    creates: "{{ nvm_dir }}/versions/node/v{{ node_version }}"
+
+
+# check if pm2 exists for idempotency if not then only install pm2 globally
+- name: Check if PM2 is already installed
+  become_user: "{{ server_username }}"
+  shell: |
+    export NVM_DIR="{{ nvm_dir }}"
+    [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+    command -v pm2
+  register: pm2_check
+  ignore_errors: yes
+  changed_when: false
+  args:
+    executable: /bin/bash
+
+
+#Install PM2 globally
+- name: Install Pm2 globally
+  become_user: "{{ server_username }}"
+  # or we can use when: pm2_check.failed
+  when: pm2_check.rc != 0 
+  shell: |
+    export NVM_DIR="{{ nvm_dir }}"
+    [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+    npm install -g pm2
+  args:
+    executable: /bin/bash
+
+#this makes pm2 start even after boot
+#ultimeately makes app start after reboot
+- name: setup PM2 startup
+  become: yes
+  shell: |
+    export NVM_DIR="{{ nvm_dir }}"
+    [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+    pm2 startup systemd -u {{ server_username }} --hp /home/{{ server_username }}
+  args:
+    executable: /bin/bash
+    creates: "/etc/systemd/system/pm2-frontend-nextjs{{ server_username }}.service"
+

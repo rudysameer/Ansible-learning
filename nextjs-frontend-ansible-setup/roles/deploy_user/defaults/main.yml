@@ -1,5 +1,0 @@
-# default values (can be overridden in playbook)
-app_user: frontend-nextjs-user
-repo_name: myabroadfriend
-deploy_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIYFLC3AfdbFSKe2ff/QEGH+ntMmjLhL+ERjYVWQf0Un samir-maharjan@gmail.com"
-

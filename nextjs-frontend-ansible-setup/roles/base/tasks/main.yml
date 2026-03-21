@@ -1,0 +1,32 @@
+# create an .ssh directory inside the server if not already exists
+- name: Create an .ssh directory
+  ansible.builtin.file:
+    path: "/home/{{ server_username }}/.ssh"
+    state: directory
+    mode: '0700'
+
+#step 5: Set Authorized_keys so the runner can have passwordless ssh connection
+#anyone who holds the private key is allowed to act in the server
+- name: deploy key to authorized key
+  ansible.builtin.authorized_key:
+    user: "{{ server_username }}"
+    state: present
+    key: "{{ deploy_key }}"
+
+#install acl package for privilege escalation and permission management
+- name: Install ACL package for privilege escalation and permission management
+  ansible.builtin.apt:
+    name: acl
+    state: present
+    update_cache: yes
+
+#this installs toolbox requied to download NVM 
+#ensure various node.js and various packages can be compiled and secured on the system
+- name: INSTALL dependencies for nvm
+  apt:
+    name:
+      - curl
+      - build-essential
+      - libssl-dev
+    state: present
+    update_cache: yes

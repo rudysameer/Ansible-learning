@@ -1,2 +1,0 @@
-node_version: "20.9.0"
-nvm_dir: "/home/{{ app_user }}/.nvm"
