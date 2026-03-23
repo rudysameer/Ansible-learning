@@ -1,0 +1,33 @@
+---
+- name: SETUP WEB SERVER
+  hosts: webservers
+  become: yes
+  
+  tasks:
+    - name: Update apt packages
+      apt:
+        update_cache: yes
+    
+    - name: Install nginx
+      apt:
+        name: nginx
+        state: present 
+
+    - name: Ensure nginx service is running and enabled
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Create a simple index.html file
+      copy:
+        dest: /var/www/html/index.html
+        content: "<html><body><h1>Welcome to the Web Server!</h1></body></html>"
+        owner: www-data
+        group: www-data
+        mode: '0644'
+
+    - name: Restart nginx to apply changes
+      service:
+        name: nginx
+        state: restarted
