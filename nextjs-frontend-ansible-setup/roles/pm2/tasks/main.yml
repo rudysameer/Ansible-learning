@@ -1,0 +1,40 @@
+# check if pm2 exists for idempotency if not then only install pm2 globally
+- name: Check if PM2 is already installed
+  become_user: "{{ app_user }}"
+  shell: |
+    export NVM_DIR="{{ nvm_dir }}"
+    [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+    command -v pm2
+  register: pm2_check
+  ignore_errors: yes
+  changed_when: false
+  args:
+    executable: /bin/bash
+
+
+
+#Install PM2 globally
+- name: Install Pm2 globally
+  become_user: "{{ app_user }}"
+  # or we can use when: pm2_check.failed
+  when: pm2_check.rc != 0 
+  shell: |
+    export NVM_DIR="{{ nvm_dir }}"
+    [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+    npm install -g pm2
+  args:
+    executable: /bin/bash
+
+#this makes pm2 start even after boot
+#ultimeately makes app start after reboot
+- name: setup PM2 startup
+  become: yes
+  shell: |
+    export NVM_DIR="{{ nvm_dir }}"
+    [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+    pm2 startup systemd -u {{ app_user }} --hp /home/{{ app_user }}
+  args:
+    executable: /bin/bash
+    creates: "/etc/systemd/system/pm2-{{ app_user }}.service"
+
+  
