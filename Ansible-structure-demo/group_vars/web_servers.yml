@@ -1,0 +1,2 @@
+server_name: webserver_group
+nginx_port: 80
