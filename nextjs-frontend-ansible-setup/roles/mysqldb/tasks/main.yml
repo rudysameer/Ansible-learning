@@ -1,0 +1,39 @@
+- name: Install MySQL server
+  apt:
+    name: mysql-server
+    state: present
+    update_cache: yes
+
+- name: Ensure MySQL is running
+  service:
+    name: mysql
+    state: started
+    enabled: true
+
+- name: Install MySQL Python package
+  apt:
+    name: python3-pymysql
+    state: present
+
+# - name: set root password optional but good practise
+#   mysql_user:
+#     name: root
+#     host: localhost
+#     password: "{{ db_root_password }}"
+#     login_unix_socket: /var/run/mysqld/mysqld.sock
+#   ignore_errors: true
+
+- name: Create Database
+  mysql_db:
+    name: "{{ db_name }}"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Create database and Give privileges
+  mysql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_user_password }}"
+    priv: "{{ db_name }}.*:ALL"
+    host: "%"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock

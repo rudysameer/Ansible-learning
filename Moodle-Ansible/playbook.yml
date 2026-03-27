@@ -1,0 +1,6 @@
+---
+- name: Setup Moodle in the Server
+  hosts: moodle_servers
+  become: yes
+  roles:
+    - db

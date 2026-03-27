@@ -1,0 +1,38 @@
+- name: Install nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: Enable and start nginx
+  service:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: Remove the default config file
+  file:
+    path: "{{ nginx_sites_enabled }}/default"
+    state: absent
+
+
+- name: Create Laravel nginx config
+  template:
+    src: laravel.conf.j2
+    dest: "{{ nginx_sites_available }}/laravel.conf"
+
+- name: Enable Laravel Site
+  file:
+    src: "{{ nginx_sites_available }}/laravel.conf"
+    dest: "{{ nginx_sites_enabled }}/laravel.conf"
+    state: link
+
+- name: Test nginx config
+  command: nginx -t
+  register: nginx_test
+  failed_when: nginx_test.rc != 0
+
+- name: Reload nginx
+  service:
+    name: nginx
+    state: reloaded

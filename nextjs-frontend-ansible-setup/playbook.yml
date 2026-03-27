@@ -1,8 +1,9 @@
 ---
-- name: Setup Frontend Servers
-  hosts: frontend_servers
+- name: Setup for laravel application in servers
+  hosts: laravel_app_servers
   become: yes
 
   roles:
-    - base
-    - frontend-nextjs-deploy
+    - php-base
+    - mysqldb
+    - nginx_web_server

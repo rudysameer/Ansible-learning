@@ -1,0 +1,4 @@
+db_name: laravel_db
+db_user: laravel_user
+db_user_password: strongpassword
+db_root_password: rootpassword

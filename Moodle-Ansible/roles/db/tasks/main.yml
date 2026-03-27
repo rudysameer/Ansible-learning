@@ -1,0 +1,80 @@
+- name: Install required packages
+  apt:
+    name:
+      - wget
+      - gnupg
+      - lsb-release
+    state: present
+    update_cache: yes
+
+- name: Download MYSQL APT config package
+  get_url:
+    url: https://dev.mysql.com/get/mysql-apt-config_0.8.29-1_all.deb
+    dest: /tmp/mysql-apt-config.deb
+    
+#preconfiguration since we need MYSQL version 8.4
+- name: Set MySQL version 8.4
+  # debconf manages and answers to the prompts
+  debconf:
+    name: mysql-apt-config
+    #specific question prompt seen in terminal during installation
+    question: mysql-apt-config/select-server
+    value: mysql-8.4
+    vtype: select
+
+# install repo packages
+# Now system knows:
+#I can install MySQL 8.4 from official source
+- name: Install MySQL APT config
+  apt:
+    deb: /tmp/mysql-apt-config.deb
+
+#update cache
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+# install mysql server
+- name: Install MySQL server 8.4
+  apt:
+    name: mysql-server
+    state: present
+
+#Ensure MySQL running
+- name: start MySQL
+  service:
+    name: mysql
+    state: started
+    enabled: yes
+
+
+#now db setup
+#install python mysql client
+# Ansible uses Python to talk to MySQL
+- name: Install mysql python dependency
+  apt:
+    name: python3-pymysql
+    state: present
+
+
+- name: Create Moodle database
+  community.mysql.mysql_db:
+    name: moodle
+    state: present
+    # Connect as root using local socket (no password needed
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Create Moodle DB user
+  community.mysql.mysql_user:
+    name: moodleuser
+    password: strongpassword
+    priv: "moodle.*:ALL"
+    host: "localhost"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock    
+
+
+
+
+
+

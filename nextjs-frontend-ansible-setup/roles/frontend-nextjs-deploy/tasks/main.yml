@@ -6,6 +6,14 @@
   args:
     creates: "{{ nvm_dir }}/nvm.sh"
 
+#For single source of the truth we read node version from raw github .nvmrc
+- name: Fetch .nvmrc from github raw
+  uri:
+    url: https://raw.githubusercontent.com/rudysameer/nextjs-npm-workflow/main/.nvmrc
+    return_content: yes
+  register: node_version
+
+
 
 # Install nodejs via nvm
 # sourcing nvm.sh path so nvm gets known and node can be installed
@@ -14,11 +22,11 @@
   shell: |
     export NVM_DIR="{{ nvm_dir }}"
     [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
-    nvm install {{ node_version }}
-    nvm alias default {{ node_version }}
+    nvm install {{ node_version.content | trim }}
+    nvm alias default {{ node_version.content | trim }}
   args:
     executable: /bin/bash
-    creates: "{{ nvm_dir }}/versions/node/v{{ node_version }}"
+    creates: "{{ nvm_dir }}/versions/node/v{{ node_version.content | trim }}"
 
 
 # check if pm2 exists for idempotency if not then only install pm2 globally
@@ -49,7 +57,7 @@
 
 #this makes pm2 start even after boot
 #ultimeately makes app start after reboot
-- name: setup PM2 startup
+- name: setup PM2 startupclear
   become: yes
   shell: |
     export NVM_DIR="{{ nvm_dir }}"
@@ -57,5 +65,5 @@
     pm2 startup systemd -u {{ server_username }} --hp /home/{{ server_username }}
   args:
     executable: /bin/bash
-    creates: "/etc/systemd/system/pm2-frontend-nextjs{{ server_username }}.service"
+    creates: "/etc/systemd/system/pm2-{{ server_username }}.service"
 

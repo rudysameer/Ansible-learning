@@ -1,0 +1,33 @@
+- name: update apt cache
+  apt:
+    update_cache: yes
+
+- name: Install PHP and required extensions
+  apt:
+    name:
+      - php
+      - php-fpm
+      - php-curl
+      - php-zip
+      - unzip
+      - php-mbstring
+      - php-cli
+      - php-mysql
+      - php-xml
+      - php-bcmath
+      - git
+      - curl
+    state: present
+
+- name: Ensure Php-fpm is running
+  service:
+    name: "php{{ php_fpm_version }}-fpm"
+    state: started
+    enabled: true
+
+- name: Install composer
+  shell: |
+    curl -sS https://getcomposer.org/installer | php
+    mv composer.phar /usr/local/bin/composer
+  args:
+    creates: /usr/local/bin/composer
