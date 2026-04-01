@@ -1,0 +1,14 @@
+
+#these are the environment variables for laravel application
+app_dir: /var/www/laravel_app
+repo_url: https://github.com/rudysameer/Laravel-application-todo-list
+branch: main
+
+app_env: production
+app_debug: false
+app_url: http://192.168.122.190
+
+db_name: laravel_db
+db_user: laravel_user
+db_user_password: strongpassword
+

@@ -1,0 +1,85 @@
+
+# create app directory inside the server
+- name: Create App directory
+  file:
+    path: "{{ app_dir }}"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+
+# clone the project from the github repository
+- name: Clone the repository
+  git:
+    path: "{{ repo_url }}"
+    dest: "{{ app_dir }}"
+    version: "{{ branch }}"
+    force: yes
+
+# install dependencies for which also include laravel
+- name: Install Composer Dependencies
+  command: composer install --no-interaction --prefer-dist --optimize-autoloader
+  args:
+    chdir: "{{ app_dir }}"
+
+# set up environment 
+- name: Copy .env file
+  templates:
+    src: .env.j2
+    dest: "{{ app_dir }}/.env"
+
+#Generate laravel app key
+- name: Generate Laravel app key
+  command: php artisan key:generate
+  args:
+    chdir: "{{ app_dir }}"
+
+# set permissions
+- name: Set permissions for storage and cache
+  file:
+    - name: Set permissions for storage and cache
+  file:
+    path: "{{ item }}"
+    state: directory
+    recurse: yes
+    owner: www-data
+    group: www-data
+    mode: '0775'
+  loop:
+    - "{{ app_dir }}/storage"
+    - "{{ app_dir }}/bootstrap/cache"
+
+# create syblinks of storage where laravel uploads to public so 
+# so it can be serve to the public
+- name: Create Storage symblink
+  command: php artisan storage: link
+  args:
+    chdir: "{{ app_dir }}"
+  ignore_errors: yes
+
+# Run migrations
+- name: Run database migrations
+  command: php artisan migrate --force
+  args:
+    chdir: "{{ app_dir }}"
+
+#optimize laravel
+- name: Cache config
+  command: php artisan config:cache
+  args:
+    chdir: "{{ app_dir }}"
+
+- name: cache routes
+  command: php artisan routes:cache
+  args:
+    chdir: "{{ app_dir }}"
+
+- name: Cache views
+  command: php artisan view:cache
+  args:
+    chdir: "{{ app_dir }}"
+
+- name: Restart php-fpm
+  service:
+    name: "php{{ php_fpm_version }}-fpm"
+    state: restarted
